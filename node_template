@@ -1,0 +1,38 @@
+HOST_ROLE	NAME					HOSTNAME								PORT							IPv4
+MASTER_1	clickhouse_master_1		{clickhouse_master_1_host_fullname}		{clickhouse_master_1_port_ssh}	{clickhouse_master_1_ip}
+MASTER_2	clickhouse_master_2		{clickhouse_master_2_host_fullname}		{clickhouse_master_2_port_ssh}	{clickhouse_master_2_ip}
+MASTER_3	clickhouse_master_3		{clickhouse_master_3_host_fullname}		{clickhouse_master_3_port_ssh}	{clickhouse_master_3_ip}
+MASTER_4	clickhouse_master_4		{clickhouse_master_4_host_fullname}		{clickhouse_master_4_port_ssh}	{clickhouse_master_4_ip}
+SERVICE		clickhouse_service		{clickhouse_service_host_fullname}		{clickhouse_service_port_ssh}	{clickhouse_service_ip}
+-----------------------------------------------------------------------------
+
+clickhouse_master_1
+root			{clickhouse_1_root_pass}	OS
+clickhouse		{clickhouse_user_pass}		OS
+zookeeper		{zookeeper_user_pass}		OS
+
+clickhouse_master_2
+root			{clickhouse_2_root_pass}	OS
+clickhouse		{clickhouse_user_pass}		OS
+zookeeper		{zookeeper_user_pass}		OS
+
+clickhouse_master_3
+root			{clickhouse_3_root_pass}	OS
+clickhouse		{clickhouse_user_pass}		OS
+zookeeper		{zookeeper_user_pass}		OS
+
+clickhouse_master_4
+root			{clickhouse_4_root_pass}	OS
+clickhouse		{clickhouse_user_pass}		OS
+zookeeper		{zookeeper_user_pass}		OS
+
+clickhouse_service
+root			{clickhouse_5_root_pass}	OS
+clickhouse		{clickhouse_user_pass}		OS
+zookeeper		{zookeeper_user_pass}		OS
+
+ssh -i ~/.ssh/clickhouse_master_1 -p {clickhouse_master_1_port_ssh} clickhouse@{clickhouse_master_1_host_fullname}
+ssh -i ~/.ssh/clickhouse_master_2 -p {clickhouse_master_2_port_ssh} clickhouse@{clickhouse_master_2_host_fullname}
+ssh -i ~/.ssh/clickhouse_master_3 -p {clickhouse_master_3_port_ssh} clickhouse@{clickhouse_master_3_host_fullname}
+ssh -i ~/.ssh/clickhouse_master_4 -p {clickhouse_master_4_port_ssh} clickhouse@{clickhouse_master_4_host_fullname}
+ssh -i ~/.ssh/clickhouse_service -p {clickhouse_service_port_ssh} clickhouse@{clickhouse_service_host_fullname}
