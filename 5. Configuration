@@ -1,4 +1,4 @@
-4. Конфигурация ClickHouse
+5. Конфигурация ClickHouse
 
 |Файл				| Назначение					| Одинаковый?	|
 |-------------------+-------------------------------+---------------|
@@ -9,7 +9,7 @@
 |users.d/app.xml	| Пользователи					| ✅ Да		|
 
 
-4.1 listen_host (config.d/listen.xml) - определяет на каких интерфейсах ClickHouse принимает входящие соединения:
+5.1 listen_host (config.d/listen.xml) - определяет на каких интерфейсах ClickHouse принимает входящие соединения:
 	* native client (9000)
 	* http (8123)
 	* interserver (9009)
@@ -27,7 +27,7 @@ sudo vi /etc/clickhouse-server/config.d/listen.xml
   <listen_host>0.0.0.0</listen_host>
 </clickhouse>
 
-4.2 ZooKeeper подключение (config.d/zookeeper.xml) - описывает куда ClickHouse подключается за координатором:
+5.2 ZooKeeper подключение (config.d/zookeeper.xml) - описывает куда ClickHouse подключается за координатором:
 	* репликация ReplicatedMergeTree
 	* DDL ON CLUSTER
 	* distributed_ddl
@@ -56,7 +56,7 @@ sudo vi /etc/clickhouse-server/config.d/zookeeper.xml
   </zookeeper>
 </clickhouse>
 
-4.3 Макросы (config.d/macros.xml) - это локальные переменные ноды, которые:
+5.3 Макросы (config.d/macros.xml) - это локальные переменные ноды, которые:
 	* подставляются в DDL
 	* используются в ReplicatedMergeTree
 	* определяют shard / replica
@@ -118,7 +118,7 @@ ch-master-4
   </macros>
 </clickhouse>
 
-4.4 Описание кластера на каждой ноде (config.d/remote_servers.xml) 
+5.4 Описание кластера на каждой ноде (config.d/remote_servers.xml) 
 В файле remote_servers описана топология кластера, поэтому любая нода может:
 	- быть координатором запроса к distributed-таблице
 	- рассылать подзапросы на шарды
@@ -170,7 +170,7 @@ sudo vi /etc/clickhouse-server/config.d/remote_servers.xml
 </clickhouse>
 
 
-4.5 Пользователи (users.d/app.xml)
+5.5 Пользователи (users.d/app.xml)
 Описывает:
 	* пользователей
 	* пароли
