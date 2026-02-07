@@ -1,0 +1,85 @@
+2. Установка ZooKeeper ensemble - ставим ZooKeeper на 3 мастер-ноды
+2.1. На каждой мастер ноде создать пользователя zookeeper + дать ему права суперпользователя
+КТО: root
+ГДЕ: 3 МАСТЕР-НОДЫ
+adduser zookeeper
+usermod -aG sudo zookeeper
+
+2.2. Поставить java
+КТО: root
+ГДЕ: 3 МАСТЕР-НОДЫ
+apt-get install openjdk-8-jdk
+java -version
+ 
+2.3. Создать папку, где будет установлен zookeeper + отдельно папки под данные и логи и выдать права владельца для пользователя zookeeper на них
+КТО: zookeeper
+ГДЕ: 3 МАСТЕР-НОДЫ
+sudo mkdir /usr/local/zookeeper
+sudo mkdir -p /var/lib/zookeeper /var/log/zookeeper
+sudo chown -R zookeeper:zookeeper /usr/local/zookeeper
+sudo chown -R zookeeper:zookeeper /var/lib/zookeeper
+sudo chown -R zookeeper:zookeeper /var/log/zookeeper
+
+2.4. Для каждой мастер ноды под пользователем zookeeper скачать zookeeper архив с бинарным дистрибутивом, распаковать, переместить в папку /usr/local/zookeeper
+КТО: zookeeper
+ГДЕ: 3 МАСТЕР-НОДЫ
+cd ~
+wget https://archive.apache.org/dist/zookeeper/zookeeper-3.6.4/apache-zookeeper-3.6.4-bin.tar.gz
+sudo tar -zxf apache-zookeeper-3.6.4-bin.tar.gz -C /usr/local/zookeeper --strip-components 1
+rm apache-zookeeper-3.6.4-bin.tar.gz
+
+2.5. Копирование из сэмпла и настройка конфига zoo.cfg
+КТО: zookeeper
+ГДЕ: 3 МАСТЕР-НОДЫ
+sudo cp /usr/local/zookeeper/conf/zoo_sample.cfg /usr/local/zookeeper/conf/zoo.cfg
+sudo vi /usr/local/zookeeper/conf/zoo.cfg
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/var/lib/zookeeper
+clientPort=2181
+autopurge.snapRetainCount=5
+autopurge.purgeInterval=24
+
+server.1={clickhouse_master_1_host_fullname}:2888:3888
+server.2={clickhouse_master_2_host_fullname}:2888:3888
+server.3={clickhouse_master_3_host_fullname}:2888:3888
+
+2.6 Прописать для каждой ноды myid - уникальный идентификатор ZooKeeper-сервера в Quorum
+Он строго соответствует порядковому номеру хоста из zoo.cfg (выше) - эту инфу и надо сообщить хостам на каждой ноде в файле /var/lib/zookeeper/myid
+КТО: zookeeper
+ГДЕ: МАСТЕР-НОДА 1
+echo 1 > /var/lib/zookeeper/myid
+
+ГДЕ: МАСТЕР-НОДА 2
+echo 2 > /var/lib/zookeeper/myid
+
+ГДЕ: МАСТЕР-НОДА 3
+echo 3 > /var/lib/zookeeper/myid
+
+2.7 Создать systemd unit
+КТО: root
+ГДЕ: 3 МАСТЕР-НОДЫ
+vi /etc/systemd/system/zookeeper.service
+[Unit]
+Description=Apache ZooKeeper
+After=network.target
+
+[Service]
+User=zookeeper
+Group=zookeeper
+Type=simple
+ExecStart=/usr/local/zookeeper/bin/zkServer.sh start-foreground /usr/local/zookeeper/conf/zoo.cfg
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+systemctl daemon-reload
+systemctl enable --now zookeeper
+systemctl status zookeeper -l
+
+ПРОВЕРКА:
+jps
+netstat -tulnp - есть порты 2181 + 2888 + 3888
