@@ -1,0 +1,47 @@
+1. Подготовка ноды
+1.1. Установить временной пояс по-умолчанию
+КТО: root
+ГДЕ: ВСЕ НОДЫ
+timedatectl set-timezone UTC
+
+1.2. Создать пользователя и дать ему права суперпользователя
+КТО: root
+ГДЕ: ВСЕ НОДЫ
+adduser clickhouse
+usermod -aG sudo clickhouse
+
+1.3. Генерация ssh-ключа, скопировать публичный ключ на ноду
+Где: Локальный АРМ
+КТО: -
+ssh-keygen -t ed25519 -f ~/.ssh/clickhouse_master_N -C "denis_lomakov@mail.ru"
+ssh-copy-id -i ~/.ssh/clickhouse_master_N.pub -p {clickhouse_master_N_port_ssh} clickhouse@{clickhouse_master_N_host_fullname}
+ssh -i ~/.ssh/clickhouse_master_N -p {clickhouse_master_N_port_ssh} clickhouse@{clickhouse_master_N_host_fullname}
+
+1.4. Настроить SSH-сервер на отказ от паролей
+КТО: clickhouse
+ГДЕ: ВСЕ НОДЫ
+sudo vi /etc/ssh/sshd_config
+MaxAuthTries 3
+PubkeyAuthentication yes
+PasswordAuthentication no
+UsePAM no
+PermitRootLogin no
+ChallengeResponseAuthentication no
+
+sudo systemctl restart ssh
+
+1.5. Обновить список пакетов и обновить сами пакеты
+КТО: clickhouse
+ГДЕ: ВСЕ НОДЫ
+sudo apt update
+sudo apt upgrade -y
+
+1.6. Настроить /etc/hosts - имена всех хостов должны резолвиться
+КТО: clickhouse
+ГДЕ: ВСЕ НОДЫ
+vi /etc/hosts
+{clickhouse_master_1_ip} {clickhouse_master_1_host_fullname} {clickhouse_master_1_hostname}
+{clickhouse_master_2_ip} {clickhouse_master_2_host_fullname} {clickhouse_master_2_hostname}
+{clickhouse_master_3_ip} {clickhouse_master_3_host_fullname} {clickhouse_master_3_hostname}
+{clickhouse_master_4_ip} {clickhouse_master_4_host_fullname} {clickhouse_master_4_hostname}
+{clickhouse_service_ip} {clickhouse_service_host_fullname} {clickhouse_service_hostname}
