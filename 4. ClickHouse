@@ -1,0 +1,23 @@
+4. Установка ClickHouse - ставим ClickHouse на 4 мастер-ноды
+4.1 Установка пакетов
+КТО: clickhouse
+ГДЕ: 4 МАСТЕР-НОДЫ
+sudo apt install -y ca-certificates curl gnupg
+sudo mkdir -p /usr/share/keyrings
+
+4.2. Скачиваем ClickHouse GPG ключ для подписи и шифрования файлов
+КТО: clickhouse
+ГДЕ: 4 МАСТЕР-НОДЫ
+curl -fsSL 'https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key' | sudo gpg --dearmor -o /usr/share/keyrings/clickhouse-keyring.gpg
+
+4.3. Добавляем репозиторий ClickHouse в список пакетов apt
+КТО: clickhouse
+ГДЕ: 4 МАСТЕР-НОДЫ
+ARCH=$(dpkg --print-architecture)
+echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" | sudo tee /etc/apt/sources.list.d/clickhouse.list
+
+4.4. Ставим через менеджер пакетов ClickHouse-сервер / клиент
+КТО: clickhouse
+ГДЕ: 4 МАСТЕР-НОДЫ
+sudo apt-get update
+sudo apt install -y clickhouse-server clickhouse-client
