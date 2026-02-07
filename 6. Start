@@ -1,0 +1,32 @@
+6. Запуск
+6.1. Запуск systemctl сервисов
+КТО: clickhouse
+ГДЕ: 4 МАСТЕР-НОДЫ
+sudo systemctl daemon-reload
+sudo systemctl enable --now clickhouse-server
+sudo systemctl status clickhouse-server -l
+
+6.2. Инициализация кластера
+КТО: clickhouse
+ГДЕ: 1 МАСТЕР-НОДА
+clickhouse-client -h {clickhouse_master_1_host_fullname} -u app --password {STRONG_PASSWORD}
+
+CREATE DATABASE {database_name} ON CLUSTER {cluster_name};
+
+CREATE TABLE {database_name}.{local_table_name} ON CLUSTER {cluster_name}
+(
+  event_date Date,
+  user_id UInt64,
+  event String,
+  ts DateTime
+)
+ENGINE = ReplicatedMergeTree(
+  '/clickhouse/tables/{shard}/{database_name}/{local_table_name}',
+  '{replica}'
+)
+PARTITION BY toYYYYMM(event_date)
+ORDER BY (event_date, user_id);
+
+CREATE TABLE {database_name}.events_dist ON CLUSTER {cluster_name}
+AS {database_name}.{local_table_name}
+ENGINE = Distributed({cluster_name}, {database_name}, {local_table_name}, rand());
