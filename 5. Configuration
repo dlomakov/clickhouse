@@ -1,0 +1,210 @@
+4. Конфигурация ClickHouse
+
+|Файл				| Назначение					| Одинаковый?	|
+|-------------------+-------------------------------+---------------|
+|listen.xml			| Где слушать соединения		| ✅ Да			|
+|zookeeper.xml		| Где ZooKeeper 				| ✅ Да			|
+|macros.xml			| Кто эта нода (shard/replica)	| ❌ Нет		|
+|remote_servers.xml	| Топология кластера			| ✅ Да			|
+|users.d/app.xml	| Пользователи					| ✅ Да			|
+
+
+4.1 listen_host (config.d/listen.xml) - определяет на каких интерфейсах ClickHouse принимает входящие соединения:
+	* native client (9000)
+	* http (8123)
+	* interserver (9009)
+	
+Без корректного listen_host:
+	* ноды не смогут ходить друг к другу
+	* Distributed / репликация / DDL ON CLUSTER могут не работать
+
+⚠️ Важно: это не security-механизм, а чисто bind-интерфейс.
+
+КТО: clickhouse
+ГДЕ: 4 МАСТЕР-НОДЫ
+sudo vi /etc/clickhouse-server/config.d/listen.xml
+<clickhouse>
+  <listen_host>0.0.0.0</listen_host>
+</clickhouse>
+
+4.2 ZooKeeper подключение (config.d/zookeeper.xml) - описывает куда ClickHouse подключается за координатором:
+	* репликация ReplicatedMergeTree
+	* DDL ON CLUSTER
+	* distributed_ddl
+	* metadata синхронизация
+	
+Одинаковый на всех нодах ClickHouse.
+Все ноды должны одинаково видеть ensemble ZooKeeper.
+
+КТО: clickhouse
+ГДЕ: 4 МАСТЕР-НОДЫ
+sudo vi /etc/clickhouse-server/config.d/zookeeper.xml
+<clickhouse>
+  <zookeeper>
+    <node>
+      <host>{clickhouse_master_1_host_fullname}</host>
+      <port>2181</port>
+    </node>
+    <node>
+      <host>{clickhouse_master_2_host_fullname}</host>
+      <port>2181</port>
+    </node>
+    <node>
+      <host>{clickhouse_master_3_host_fullname}</host>
+      <port>2181</port>
+    </node>
+  </zookeeper>
+</clickhouse>
+
+4.3 Макросы (config.d/macros.xml) - это локальные переменные ноды, которые:
+	* подставляются в DDL
+	* используются в ReplicatedMergeTree
+	* определяют shard / replica
+ 
+shard и replica — это не “магические” поля ClickHouse, а просто строки-подстановки для {shard} и {replica} в DDL (обычно в пути ReplicatedMergeTree и т.п.)
+Без них каждая нода не знает, кто она в кластере.
+!!!УНИКАЛЬНЫЙ для каждой ноды!!!
+
+	* cluster — не обязательный, но удобный макрос
+	* replica должен быть уникален в пределах шарда
+
+Как используются:
+ENGINE = ReplicatedMergeTree(
+  '/clickhouse/tables/{shard}/lab/events',
+  '{replica}'
+)
+
+КТО: clickhouse
+ГДЕ: 4 МАСТЕР-НОДЫ
+sudo vi /etc/clickhouse-server/config.d/macros.xml
+
+ch-master-1
+
+<clickhouse>
+  <macros>
+    <cluster>{cluster_name}</cluster>
+    <shard>01</shard>
+    <replica>{clickhouse_master_1_host_fullname}</replica>
+  </macros>
+</clickhouse>
+
+ch-master-2
+
+<clickhouse>
+  <macros>
+    <cluster>{cluster_name}</cluster>
+    <shard>01</shard>
+    <replica>{clickhouse_master_2_host_fullname}</replica>
+  </macros>
+</clickhouse>
+
+ch-master-3
+
+<clickhouse>
+  <macros>
+    <cluster>{cluster_name}</cluster>
+    <shard>02</shard>
+    <replica>{clickhouse_master_3_host_fullname}</replica>
+  </macros>
+</clickhouse>
+
+ch-master-4
+
+<clickhouse>
+  <macros>
+    <cluster>{cluster_name}</cluster>
+    <shard>02</shard>
+    <replica>{clickhouse_master_4_host_fullname}</replica>
+  </macros>
+</clickhouse>
+
+4.4 Описание кластера на каждой ноде (config.d/remote_servers.xml) 
+В файле remote_servers описана топология кластера, поэтому любая нода может:
+	- быть координатором запроса к distributed-таблице
+	- рассылать подзапросы на шарды
+	- выбирать реплику для чтения / записи
+Т.е. каждая нода знает, куда сходить, но данные физически всегда лежат на своем шарде
+
+ОБЯЗАТЕЛЬНО одинаковый на всех нодах
+Если хоть на одной ноде отличается:
+	* Distributed ведёт себя непредсказуемо
+	* возможны silent-ошибки
+
+Ключевые моменты:
+	* <shard> — логический шард
+	* <replica> — физическая нода
+	* internal_replication=true → INSERT идёт в одну реплику, остальные подтянутся сами
+	* <user>/<password> — критично, если default закрыт
+	
+КТО: clickhouse
+ГДЕ: 4 МАСТЕР-НОДЫ
+
+sudo vi /etc/clickhouse-server/config.d/remote_servers.xml
+<clickhouse>
+  <remote_servers>
+    <{cluster_name}>
+      <shard>
+        <internal_replication>true</internal_replication>
+        <replica>
+          <host>{clickhouse_master_1_host_fullname}</host>
+          <port>9000</port>
+        </replica>
+        <replica>
+          <host>{clickhouse_master_2_host_fullname}</host>
+          <port>9000</port>
+        </replica>
+      </shard>
+      <shard>
+        <internal_replication>true</internal_replication>
+        <replica>
+          <host>{clickhouse_master_3_host_fullname}</host>
+          <port>9000</port>
+        </replica>
+        <replica>
+          <host>{clickhouse_master_4_host_fullname}</host>
+          <port>9000</port>
+        </replica>
+      </shard>
+    </{cluster_name}>
+  </remote_servers>
+</clickhouse>
+
+
+4.5 Пользователи (users.d/app.xml)
+Описывает:
+	* пользователей
+	* пароли
+	* откуда можно подключаться
+	* профили ресурсов
+	* квоты
+
+Используется:
+	* клиентами
+	* distributed
+	* interserver HTTP (репликация)
+
+ДОЛЖЕН БЫТЬ одинаковым на всех нодах, иначе:
+	* Distributed работает только частично
+	* interserver ломается
+
+Важно понимать:
+	* <networks> — не firewall, а логический ACL
+	* <profile> — лимиты CPU/RAM/threads
+	* <quota> — лимиты по времени/запросам
+
+КТО: clickhouse
+ГДЕ: 4 МАСТЕР-НОДЫ
+
+sudo vi /etc/clickhouse-server/users.d/app.xml
+<clickhouse>
+  <users>
+    <app>
+      <password>{STRONG_PASSWORD}</password>
+      <networks>
+        <ip>0.0.0.0/0</ip>
+      </networks>
+      <profile>default</profile>
+      <quota>default</quota>
+    </app>
+  </users>
+</clickhouse>
