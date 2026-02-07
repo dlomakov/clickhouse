@@ -2,11 +2,11 @@
 
 |Файл				| Назначение					| Одинаковый?	|
 |-------------------+-------------------------------+---------------|
-|listen.xml			| Где слушать соединения		| ✅ Да			|
-|zookeeper.xml		| Где ZooKeeper 				| ✅ Да			|
+|listen.xml			| Где слушать соединения		| ✅ Да		|
+|zookeeper.xml		| Где ZooKeeper 				| ✅ Да		|
 |macros.xml			| Кто эта нода (shard/replica)	| ❌ Нет		|
-|remote_servers.xml	| Топология кластера			| ✅ Да			|
-|users.d/app.xml	| Пользователи					| ✅ Да			|
+|remote_servers.xml	| Топология кластера			| ✅ Да		|
+|users.d/app.xml	| Пользователи					| ✅ Да		|
 
 
 4.1 listen_host (config.d/listen.xml) - определяет на каких интерфейсах ClickHouse принимает входящие соединения:
