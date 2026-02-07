@@ -1,4 +1,4 @@
-<img width="682" height="375" alt="image" src="https://github.com/user-attachments/assets/debbffcf-9c2f-40f5-a0f5-88aec0919c45" /># Руководство по установке кластера ClickHouse
+# Руководство по установке кластера ClickHouse
 Практическое пошаговое руководство по развертыванию Вашего собственного кластера ClickHouse
 
 # Архитектура
