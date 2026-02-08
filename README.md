@@ -206,9 +206,6 @@ ORDER BY (user_id, dt)
 
 ENGINE = ReplacingMergeTree(version)
 
-⚠️ Важно:
-	* физически старые версии есть, пока не смержились
-	* для точности нужен: SELECT ... FINAL
 
 3. SummingMergeTree - Авто-агрегация
 
