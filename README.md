@@ -26,7 +26,7 @@ https://gist.github.com/thanhthai3010/22f8d3d1f0d0897255b84f37571b683d
 Движки таблиц\
 https://clickhouse.com/docs/ru/engines/table-engines?ysclid=mldumst6yy94100096
 
-5. Meduium.com\
+5. Medium.com\
 Scaling ClickHouse: Achieve Faster Queries using Distributed Tables\
 https://medium.com/%40suffyan.asad1/scaling-clickhouse-achieve-faster-queries-using-distributed-tables-1c966d98953b
 
