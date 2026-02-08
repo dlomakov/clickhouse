@@ -165,14 +165,14 @@ SELECT из Distributed\
 # Движки
 
 ClickHouse-движки — это сердце философии CH. Тут не «одна таблица», а конструктор под задачу.\
-ClickHouse — это:
-	* append-only
-	* immutable parts
+ClickHouse — это:\
+	* append-only\
+	* immutable parts\
 	* async merge
 
-Поэтому:
-	* нет UPDATE / DELETE
-	* всё решается на уровне движка
+Поэтому:\
+	* нет UPDATE / DELETE\
+	* всё решается на уровне движка\
 	* правильный выбор ENGINE = 50% успеха
 	
 Базовая семья: MergeTree (99% продовых таблиц)
@@ -184,13 +184,13 @@ ClickHouse — это:
 	* Партиции (PARTITION BY)\
 	* Сортировка (ORDER BY) — ключевая вещь\
 	* Индексы (primary key = sparse index)\
-	* Асинхронные merge’ы\
+	* Асинхронные merge’ы
 
 Когда\
 	* append-only факты\
 	* логи\
 	* события\
-	* витрины BI\
+	* витрины BI
 
 ENGINE = MergeTree\
 PARTITION BY toYYYYMM(dt)\
