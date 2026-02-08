@@ -258,7 +258,7 @@ ClickHouse — это:
 1. **MergeTree** - База всего
 
 Что умеет
-* Колончное хранение
+* Колоночное хранение
 * Партиции (PARTITION BY)
 * Сортировка (ORDER BY) — ключевая вещь
 * Индексы (primary key = sparse index)
@@ -445,8 +445,8 @@ ENGINE = Distributed(cluster, db, local_table)
 * даже если физически это один data.bin
 
 На чтении происходит:
-1. По data.cmrk4 определяется offset нужной колонки\
-2. Read → seek → read только нужные байты\
+1. По data.cmrk4 определяется offset нужной колонки
+2. Read → seek → read только нужные байты
 3. Остальные колонки не трогаются
 
 Column pruning работает полностью
