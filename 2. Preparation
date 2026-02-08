@@ -39,7 +39,7 @@ sudo apt upgrade -y
 2.6. Настроить /etc/hosts - имена всех хостов должны резолвиться
 КТО: clickhouse
 ГДЕ: ВСЕ НОДЫ
-vi /etc/hosts
+sudo vi /etc/hosts
 {clickhouse_master_1_ip} {clickhouse_master_1_host_fullname} {clickhouse_master_1_hostname}
 {clickhouse_master_2_ip} {clickhouse_master_2_host_fullname} {clickhouse_master_2_hostname}
 {clickhouse_master_3_ip} {clickhouse_master_3_host_fullname} {clickhouse_master_3_hostname}
