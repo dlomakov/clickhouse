@@ -26,7 +26,11 @@ https://gist.github.com/thanhthai3010/22f8d3d1f0d0897255b84f37571b683d
 Движки таблиц\
 https://clickhouse.com/docs/ru/engines/table-engines?ysclid=mldumst6yy94100096
 
-4. ChatGPT
+5. Meduium.com\
+Scaling ClickHouse: Achieve Faster Queries using Distributed Tables\
+https://medium.com/%40suffyan.asad1/scaling-clickhouse-achieve-faster-queries-using-distributed-tables-1c966d98953b
+
+7. ChatGPT
 
 
 
@@ -390,3 +394,6 @@ Distributed = просто view + proxy, не storage.
 Для одной логической таблицы нужны минимум 2 DDL:\
 	* *_local — где лежат данные\
 	* Distributed — как по ним ходят запросы
+
+
+<img width="826" height="442" alt="image" src="https://github.com/user-attachments/assets/279feb22-1995-4b5b-96f5-936ece62b134" />
