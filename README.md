@@ -18,7 +18,10 @@
 Install ClickHouse on Debian/Ubuntu\
 https://clickhouse.com/docs/install?ysclid=mkzsgud2sc374410174
 
-2. ChatGPT
+2. Github
+https://gist.github.com/thanhthai3010/22f8d3d1f0d0897255b84f37571b683d
+
+3. ChatGPT
 
 
 
