@@ -19,9 +19,14 @@ Install ClickHouse on Debian/Ubuntu\
 https://clickhouse.com/docs/install?ysclid=mkzsgud2sc374410174
 
 2. Github\
+Install_ClickHouse_Cluster\
 https://gist.github.com/thanhthai3010/22f8d3d1f0d0897255b84f37571b683d
 
-3. ChatGPT
+3. Официальная документация\
+Движки таблиц\
+https://clickhouse.com/docs/ru/engines/table-engines?ysclid=mldumst6yy94100096
+
+4. ChatGPT
 
 
 
