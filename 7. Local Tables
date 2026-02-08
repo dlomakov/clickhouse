@@ -1,0 +1,124 @@
+7. Работа с данными (локально)
+7.1. Создадим базу
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+CREATE DATABASE {database_name};
+
+7.2. Создадим таблицу под датасет
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+CREATE TABLE IF NOT EXISTS {database_name}.{local_table_name}
+(
+    price UInt32,
+    date Date,
+    postcode1 LowCardinality(String),
+    postcode2 LowCardinality(String),
+    type LowCardinality(String),
+    is_new UInt8,
+    duration LowCardinality(String),
+    addr1 String,
+    addr2 String,
+    street LowCardinality(String),
+    locality LowCardinality(String),
+    town LowCardinality(String),
+    district LowCardinality(String),
+    county LowCardinality(String)
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMM(date)
+ORDER BY (town, date, street)
+SETTINGS index_granularity = 8192;
+
+У нас:
+	* PARTITION BY toYYYYMM(date) — партиция по месяцу-году
+	* ORDER BY (town, date, street) — сортировка для фильтраций “по городу/дате”
+	* LowCardinality на текстовых измерениях уменьшит память и ускорит группировки
+
+ОБРАТИТЕ ВНИМАНИЕ! МЫ СОЗДАЛИ ЛОКАЛЬНУЮ ТАБЛИЦУ! ОНА ЕСТЬ ТОЛЬКО НА ОДНОЙ НОДЕ!
+Это:
+	* ❌ не распределённая
+	* ❌ не шардинг
+	* ❌ не репликация
+	* ✅ локальное хранение
+	* ✅ локальные планы
+	* ✅ один процесс ClickHouse
+	
+7.3. Вставим данные из учебного датасета
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+INSERT INTO {database_name}.{local_table_name}
+SELECT
+    toUInt32OrNull(price)                                    AS price,
+    toDateOrNull(date)                                       AS date,
+    postcode1,
+    postcode2,
+    type,
+    toUInt8OrNull(is_new)                                    AS is_new,
+    duration,
+    addr1,
+    addr2,
+    street,
+    locality,
+    town,
+    district,
+    county
+FROM url(
+  'https://storage.googleapis.com/clickhouse-demo-public/uk_price_paid.csv',
+  'CSVWithNames',
+  '
+    price String,
+    date String,
+    postcode1 String,
+    postcode2 String,
+    type String,
+    is_new String,
+    duration String,
+    addr1 String,
+    addr2 String,
+    street String,
+    locality String,
+    town String,
+    district String,
+    county String,
+    category String
+  '
+)
+WHERE price IS NOT NULL AND date IS NOT NULL
+and date >= '2022-01-01'
+LIMIT 200000;
+
+Проверка:
+SELECT count() FROM {database_name}.{local_table_name};
+
+7.4. Посмотрим, как лежит (parts/объем на диске)
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+SELECT
+  table,
+  count() AS parts,
+  formatReadableSize(sum(bytes_on_disk)) AS size
+FROM system.parts
+WHERE database='{database_name}' AND table='{local_table_name}' AND active
+GROUP BY table
+SETTINGS query_cache_system_table_handling = 'save';
+
+7.5. Посмотрим план запроса при фильтрации по году и периоду - должна хорошо работать с ORDER BY
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+EXPLAIN PLAN
+SELECT avg(price)
+FROM {database_name}.{local_table_name}
+WHERE town = 'LONDON'
+  AND date >= '2020-01-01' AND date < '2021-01-01';
+
+7.6. Посмотрим пайплайн
+EXPLAIN PIPELINE — самый spark-like поан, нужен для понимания стадий выполнения
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+EXPLAIN PIPELINE
+SELECT town, count(), avg(price)
+FROM {database_name}.{local_table_name}
+WHERE date >= '2025-01-01' AND date < '2026-01-01'
+GROUP BY town
+ORDER BY count() DESC
+LIMIT 10;
