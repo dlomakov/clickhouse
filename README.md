@@ -562,53 +562,52 @@ ClickHouse не строит единый монолитный plan, как Spar
 |Визуализация				| PIPELINE GRAPH	|
 |Distributed fan-out		| PIPELINE			|
 
-# Узлы планов запросов
+# Выполнение запросов
 
-
-ClickHouse - in-memory-oriented execution engine, это значит:
-	* данные хранятся на диске (NVMe / SSD)
-	* читаются колонками
-	* обрабатываются блоками в RAM
-	* и как можно дольше остаются в RAM, не сбрасываясь на диск
+**ClickHouse - in-memory-oriented execution engine**, это значит:
+* данные хранятся на диске (NVMe / SSD)
+* читаются колонками
+* обрабатываются блоками в RAM
+* и как можно дольше остаются в RAM, не сбрасываясь на диск
 
 ClickHouse старается:
-	* не материализовывать промежуточные результаты
-	* не писать временные файлы
-	* не делать “external sort / external hash” ПОКА хватает памяти.
+* не материализовывать промежуточные результаты
+* не писать временные файлы
+* не делать “external sort / external hash” ПОКА хватает памяти.
 
 Spill'ы на диск есть, но:
-	* это не дефолтный путь,
-	* включается по лимитам,
-	* работает точечно, а не как в GreenPlum / Spark.
+* это не дефолтный путь,
+* включается по лимитам,
+* работает точечно, а не как в GreenPlum / Spark.
 
 Где именно возможен spill
 
 1. GROUP BY - если GROUP BY не помещается в RAM:
-	* происходит partial aggregation,
-	* промежуточные агрегаты могут писаться на диск
+* происходит partial aggregation,
+* промежуточные агрегаты могут писаться на диск
 
 Настройки:
-	* max_bytes_before_external_group_by
-	* max_memory_usage
+* max_bytes_before_external_group_by
+* max_memory_usage
 
 2. ORDER BY / SORT - если сортируемый набор не помещается в память:
-	* используется external merge sort.
+* используется external merge sort.
 
 Настройки:
-	* max_bytes_before_external_sort
+* max_bytes_before_external_sort
 
 3. JOIN - самый болезненный пункт, HashJoin:
-	* строит hash-таблицу в RAM
-	* может spill-ить, но очень ограниченно
+* строит hash-таблицу в RAM
+* может spill-ить, но очень ограниченно
 
 Чего НЕТ вообще
-	* Нет полноценного disk-based execution model как:
-		- Postgres
-		- Greenplum
-		- Spark
-	* Нет:
-		- spilling DAG,
-		- stage-based execution,
+* Нет полноценного disk-based execution model как:
+	- Postgres
+	- Greenplum
+	- Spark
+* Нет:
+	- spilling DAG,
+	- stage-based execution,
 
 Если RAM закончилась → запрос чаще всего умирает
 
@@ -623,5 +622,6 @@ Spill'ы на диск есть, но:
 |Final result	| RAM → client			|
 
 ClickHouse — это:
-disk → memory → pipeline → network
+**disk → memory → pipeline → network**
 
+# Узлы планов запросов
