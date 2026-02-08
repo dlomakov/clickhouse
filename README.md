@@ -177,35 +177,38 @@ ClickHouse — это:
 	
 Базовая семья: MergeTree (99% продовых таблиц)
 
-1️. MergeTree - База всего
+	1. MergeTree - База всего
 
-Что умеет
-	* Колончное хранение
-	* Партиции (PARTITION BY)
-	* Сортировка (ORDER BY) — ключевая вещь
-	* Индексы (primary key = sparse index)
-	* Асинхронные merge’ы
+Что умеет\
+	* Колончное хранение\
+	* Партиции (PARTITION BY)\
+	* Сортировка (ORDER BY) — ключевая вещь\
+	* Индексы (primary key = sparse index)\
+	* Асинхронные merge’ы\
 
-Когда
-	* append-only факты
-	* логи
-	* события
-	* витрины BI
+Когда\
+	* append-only факты\
+	* логи\
+	* события\
+	* витрины BI\
 
-ENGINE = MergeTree
-PARTITION BY toYYYYMM(dt)
+ENGINE = MergeTree\
+PARTITION BY toYYYYMM(dt)\
 ORDER BY (user_id, dt)
 
 
-2️. ReplacingMergeTree - “Псевдо-upsert”, при merge оставляем последнюю версию строки
+	2. ReplacingMergeTree - “Псевдо-upsert”, при merge оставляем последнюю версию строки
 
-Типовой кейс
-	* snapshots
-	* SCD1
+Типовой кейс\
+	* snapshots\
+	* SCD1\
 	* дедупликация
 
 ENGINE = ReplacingMergeTree(version)
 
+⚠️ Важно:\
+	* физически старые версии есть, пока не смержились\
+	* для точности нужен: SELECT ... FINAL
 
 3. SummingMergeTree - Авто-агрегация
 
