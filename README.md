@@ -178,7 +178,7 @@ SELECT из Distributed
 
 Какие DDL реально нужны?
 
-1. Локальная таблица (на КАЖДОЙ ноде):
+1. **Локальная таблица** (на КАЖДОЙ ноде):
 	* Это storage
 	* Делается на каждой ноде
 	* Можно через ON CLUSTER
@@ -197,7 +197,7 @@ ENGINE = ReplicatedReplacingMergeTree(
 ORDER BY (event_date, user_id);
 ```
 
-2. Distributed таблица (обычно на всех нодах) - это router:
+2. **Distributed** таблица (обычно на всех нодах) - это router:
 	* Данных не хранит
 	* Делается один раз логически, но физически обычно тоже на всех нодах
 
@@ -212,14 +212,12 @@ cityHash64(user_id)
 );
 ```
 
-ON CLUSTER просто размножает DDL, но не отменяет разделение local / distributed
+**ON CLUSTER просто размножает DDL, но не отменяет разделение local / distributed**
 
 Почему так сделано, почему нельзя одной таблицей?\
-Потому что ClickHouse:\
-	* не знает заранее, где физически лежат данные\
-	* разделяет:\
-	* storage\
-	* query planning
+Потому что ClickHouse:
+* не знает заранее, где физически лежат данные
+* разделяет: storage и query planning
 
 Distributed = просто view + proxy, не storage.
 
@@ -236,10 +234,9 @@ Distributed = просто view + proxy, не storage.
 |Distributed	| Spark SQL table			|
 |ON CLUSTER		| Ansible / Terraform		|
 
-Для одной логической таблицы нужны минимум 2 DDL:\
-	* *_local — где лежат данные\
-	* Distributed — как по ним ходят запросы
-
+Для одной логической таблицы нужны минимум 2 DDL:
+* *_local — где лежат данные
+* Distributed — как по ним ходят запросы
 
 <img width="826" height="442" alt="image" src="https://github.com/user-attachments/assets/279feb22-1995-4b5b-96f5-936ece62b134" />
 
