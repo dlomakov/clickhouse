@@ -397,3 +397,60 @@ Distributed = просто view + proxy, не storage.
 
 
 <img width="826" height="442" alt="image" src="https://github.com/user-attachments/assets/279feb22-1995-4b5b-96f5-936ece62b134" />
+
+# Физическое хранение данных
+
+Где физически лежат данные ClickHouse?
+По-умолчанию (Ubuntu / deb-пакет): /var/lib/clickhouse/
+Ключевые подкаталоги:
+	/var/lib/clickhouse/
+	├── data/        <-- ДАННЫЕ ТАБЛИЦ
+	├── metadata/    <-- DDL (структура таблиц)
+	├── metadata_dropped/
+	├── store/       <-- новый layout (начиная с 21+)
+	├── tmp/
+	└── user_files/
+
+В версиях 21+ реальные данные чаще лежат в store/, а data/ содержит симлинки.
+
+В директории таблицы увидим партиции
+	- part_1/
+	- part_2/
+	- part_3/
+	- detached/
+	- format_version.txt
+
+Каждая директория part_* — это партиция
+Внутри партиций содержимое:
+
+|Файл 					| Назначение																												|
+|-----------------------|---------------------------------------------------------------------------------------------------------------------------|
+|data.bin				| Все данные всех колонок, физически лежат подряд, логически остаются колоночными, читаются выборочно по offsets			|
+|data.cmrk4				| Маркеры (offset’ы для быстрого чтения) - “карта”, где в data.bin лежит каждая колонка										|
+|serialization.json		| Схема сериализации: какие substreams, кодеки, nullable / lowcardinality, версии форматов									|
+|columns_substreams.txt	| Описание внутренних substream’ов: nullable → null-map, LowCardinality → dictionary + ids, nested / arrays					|
+|primary.cidx			| Это разреженный primary index, не B-tree, не hash: содержит значения ORDER BY, используется для range skip, не для lookup	|
+|minmax_*.idx			| Data skipping index: WHERE date BETWEEN ... ClickHouse смотрит min/max в партиции, позволяет не читать партиции вообще	|
+|count.txt				| Число строк в партиции
+
+-rw-r-----  1 clickhouse clickhouse    330 Feb  8 15:50 checksums.txt
+-rw-r-----  1 clickhouse clickhouse    406 Feb  8 15:50 columns.txt
+-rw-r-----  1 clickhouse clickhouse     10 Feb  8 15:50 default_compression_codec.txt
+-rw-r-----  1 clickhouse clickhouse      1 Feb  8 15:50 metadata_version.txt
+-rw-r-----  1 clickhouse clickhouse      4 Feb  8 15:50 partition.dat
+
+Важно понять:
+	* ClickHouse читает substreams колонок
+	* не “файл целиком”
+	* даже если физически это один data.bin
+
+На чтении происходит:
+	1. По data.cmrk4 определяется offset нужной колонки
+	2. Read → seek → read только нужные байты
+	3. Остальные колонки не трогаются
+
+Column pruning работает полностью
+
+# Планы запросов
+
+# Узлы планов запросов
