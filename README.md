@@ -164,3 +164,102 @@ SELECT из Distributed\
 
 # Движки
 
+ClickHouse-движки — это сердце философии CH. Тут не «одна таблица», а конструктор под задачу.\
+ClickHouse — это:
+	* append-only
+	* immutable parts
+	* async merge
+
+Поэтому:
+	* нет UPDATE / DELETE
+	* всё решается на уровне движка
+	* правильный выбор ENGINE = 50% успеха
+	
+Базовая семья: MergeTree (99% продовых таблиц)
+
+1️. MergeTree - База всего
+
+Что умеет
+	* Колончное хранение
+	* Партиции (PARTITION BY)
+	* Сортировка (ORDER BY) — ключевая вещь
+	* Индексы (primary key = sparse index)
+	* Асинхронные merge’ы
+
+Когда
+	* append-only факты
+	* логи
+	* события
+	* витрины BI
+
+ENGINE = MergeTree
+PARTITION BY toYYYYMM(dt)
+ORDER BY (user_id, dt)
+
+
+2️. ReplacingMergeTree - “Псевдо-upsert”, при merge оставляем последнюю версию строки
+
+Типовой кейс
+	* snapshots
+	* SCD1
+	* дедупликация
+
+ENGINE = ReplacingMergeTree(version)
+
+⚠️ Важно:
+	* физически старые версии есть, пока не смержились
+	* для точности нужен: SELECT ... FINAL
+
+3. SummingMergeTree - Авто-агрегация
+
+При merge:
+	* строки с одинаковым ключом
+	* числовые поля суммируются
+
+Когда
+	* pre-aggregated fact tables
+	* счетчики
+	* метрики
+
+ENGINE = SummingMergeTree
+ORDER BY (dt, product_id)
+
+⚠️ Опасно для сложной логики — нет контроля над merge
+
+4. AggregatingMergeTree - хардкор-агрегации
+
+Хранит состояния агрегатных функций, а не числа:
+	* sumState
+	* uniqState
+	* quantileState
+
+Когда
+	* OLAP-кубы
+	* rollup-витрины
+	* near-real-time BI
+
+ENGINE = AggregatingMergeTree
+ORDER BY (dt, key)
+
+Чтение:
+
+SELECT sumMerge(metric) FROM table
+
+
+5. CollapsingMergeTree - строки-антистроки
+
+Есть поле sign:
+	* +1 — вставка
+	* -1 — удаление
+
+Когда
+	* события изменений
+	* CDC-подобные сценарии
+
+⚠️ Сложный, редко нужен
+
+6. VersionedCollapsingMergeTree - то же самое, что предыдущий, но:
+	* с версией
+	* решает конфликты порядка
+
+Используется очень редко, но мощный.
