@@ -317,9 +317,9 @@ ENGINE = Distributed(cluster, db, local_table)
 |Глобальный доступ	| Distributed				|
 
 # DDL
-В ClickHouse почти всегда одна логическая таблица = несколько DDL.\
-В распределённом ClickHouse есть 2 уровня таблиц:\
-1. Локальная таблица — реально хранит данные\
+В ClickHouse почти всегда одна логическая таблица = несколько DDL.
+В распределённом ClickHouse есть 2 уровня таблиц:
+1. Локальная таблица — реально хранит данные
 2. Глобальная (Distributed) — единая точка входа для SELECT / INSERT
 
 🧱 Минимальная схема ClickHouse в проде:
@@ -332,35 +332,35 @@ Shard 2:\
 events → Distributed → events_local
 
 Какие DDL реально нужны\
-1. Локальная таблица (на КАЖДОЙ ноде):\
-	* Это storage\
-	* Делается на каждой ноде\
+1. Локальная таблица (на КАЖДОЙ ноде):
+	* Это storage
+	* Делается на каждой ноде
 	* Можно через ON CLUSTER
 
 	CREATE TABLE db.events_local ON CLUSTER my_cluster
-	(
-	  event_date Date,
-	  user_id UInt64,
-	  value Float64
-	)
-	ENGINE = ReplicatedReplacingMergeTree(
-	  '/clickhouse/tables/{shard}/events',
-	  '{replica}'
-	)
-	ORDER BY (event_date, user_id);
+(
+  event_date Date,
+  user_id UInt64,
+  value Float64
+)
+ENGINE = ReplicatedReplacingMergeTree(
+  '/clickhouse/tables/{shard}/events',
+  '{replica}'
+)
+ORDER BY (event_date, user_id);
 
-2. Distributed таблица (обычно на всех нодах) - это router:\
-	* Данных не хранит\
+2. Distributed таблица (обычно на всех нодах) - это router:
+	* Данных не хранит
 	* Делается один раз логически, но физически обычно тоже на всех нодах
 
 	CREATE TABLE db.events ON CLUSTER my_cluster
-	AS db.events_local
-	ENGINE = Distributed(
-	  my_cluster,
-	  db,
-	  events_local,
-	  cityHash64(user_id)
-	);
+AS db.events_local
+ENGINE = Distributed(
+  my_cluster,
+  db,
+  events_local,
+  cityHash64(user_id)
+);
 
 ON CLUSTER просто размножает DDL, но не отменяет разделение local / distributed
 
