@@ -400,27 +400,27 @@ Distributed = просто view + proxy, не storage.
 
 # Физическое хранение данных
 
-Где физически лежат данные ClickHouse?
-По-умолчанию (Ubuntu / deb-пакет): /var/lib/clickhouse/
-Ключевые подкаталоги:
-	/var/lib/clickhouse/
-	├── data/        <-- ДАННЫЕ ТАБЛИЦ
-	├── metadata/    <-- DDL (структура таблиц)
-	├── metadata_dropped/
-	├── store/       <-- новый layout (начиная с 21+)
-	├── tmp/
+Где физически лежат данные ClickHouse?\
+По-умолчанию (Ubuntu / deb-пакет): /var/lib/clickhouse/\
+Ключевые подкаталоги:\
+	/var/lib/clickhouse/\
+	├── data/        <-- ДАННЫЕ ТАБЛИЦ\
+	├── metadata/    <-- DDL (структура таблиц)\
+	├── metadata_dropped/\
+	├── store/       <-- новый layout (начиная с 21+)\
+	├── tmp/\
 	└── user_files/
 
-В версиях 21+ реальные данные чаще лежат в store/, а data/ содержит симлинки.
+В версиях 21+ реальные данные чаще лежат в store/, а data/ содержит симлинки.\
 
-В директории таблицы увидим партиции
-	- part_1/
-	- part_2/
-	- part_3/
-	- detached/
+В директории таблицы увидим партиции\
+	- part_1/\
+	- part_2/\
+	- part_3/\
+	- detached/\
 	- format_version.txt
 
-Каждая директория part_* — это партиция
+Каждая директория part_* — это партиция\
 Внутри партиций содержимое:
 
 |Файл 					| Назначение																												|
@@ -433,20 +433,14 @@ Distributed = просто view + proxy, не storage.
 |minmax_*.idx			| Data skipping index: WHERE date BETWEEN ... ClickHouse смотрит min/max в партиции, позволяет не читать партиции вообще	|
 |count.txt				| Число строк в партиции
 
--rw-r-----  1 clickhouse clickhouse    330 Feb  8 15:50 checksums.txt
--rw-r-----  1 clickhouse clickhouse    406 Feb  8 15:50 columns.txt
--rw-r-----  1 clickhouse clickhouse     10 Feb  8 15:50 default_compression_codec.txt
--rw-r-----  1 clickhouse clickhouse      1 Feb  8 15:50 metadata_version.txt
--rw-r-----  1 clickhouse clickhouse      4 Feb  8 15:50 partition.dat
-
-Важно понять:
-	* ClickHouse читает substreams колонок
-	* не “файл целиком”
+Важно понять:\
+	* ClickHouse читает substreams колонок\
+	* не “файл целиком”\
 	* даже если физически это один data.bin
 
-На чтении происходит:
-	1. По data.cmrk4 определяется offset нужной колонки
-	2. Read → seek → read только нужные байты
+На чтении происходит:\
+	1. По data.cmrk4 определяется offset нужной колонки\
+	2. Read → seek → read только нужные байты\
 	3. Остальные колонки не трогаются
 
 Column pruning работает полностью
