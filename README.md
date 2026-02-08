@@ -169,12 +169,12 @@ SELECT из Distributed
 
 🧱 Минимальная схема ClickHouse в проде:
 
-Shard 1:\
-  events_local   → ReplicatedMergeTree\
-Shard 2:\
-  events_local   → ReplicatedMergeTree
+* Shard 1:
+	- events_local   → ReplicatedMergeTree
+* Shard 2:
+	- events_local   → ReplicatedMergeTree
 
-events → Distributed → events_local
+**events → Distributed → events_local**
 
 Какие DDL реально нужны?
 
