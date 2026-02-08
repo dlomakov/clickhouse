@@ -353,14 +353,14 @@ ORDER BY (event_date, user_id);
 	* Данных не хранит
 	* Делается один раз логически, но физически обычно тоже на всех нодах
 
-	CREATE TABLE db.events ON CLUSTER my_cluster
-AS db.events_local
-ENGINE = Distributed(
-  my_cluster,
-  db,
-  events_local,
-  cityHash64(user_id)
-);
+	CREATE TABLE db.events ON CLUSTER my_cluster\
+	AS db.events_local\
+	ENGINE = Distributed(\
+	  my_cluster,\
+	  db,\
+	  events_local,\
+	  cityHash64(user_id)\
+	);
 
 ON CLUSTER просто размножает DDL, но не отменяет разделение local / distributed
 
