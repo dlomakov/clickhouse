@@ -210,7 +210,7 @@ ENGINE = ReplacingMergeTree(version)
 	* физически старые версии есть, пока не смержились\
 	* для точности нужен: SELECT ... FINAL
 
-3. SummingMergeTree - Авто-агрегация
+	3. SummingMergeTree - Авто-агрегация
 
 При merge:
 	* строки с одинаковым ключом
@@ -226,7 +226,7 @@ ORDER BY (dt, product_id)
 
 ⚠️ Опасно для сложной логики — нет контроля над merge
 
-4. AggregatingMergeTree - хардкор-агрегации
+	4. AggregatingMergeTree - хардкор-агрегации
 
 Хранит состояния агрегатных функций, а не числа:
 	* sumState
@@ -246,7 +246,7 @@ ORDER BY (dt, key)
 SELECT sumMerge(metric) FROM table
 
 
-5. CollapsingMergeTree - строки-антистроки
+	5. CollapsingMergeTree - строки-антистроки
 
 Есть поле sign:
 	* +1 — вставка
@@ -258,7 +258,7 @@ SELECT sumMerge(metric) FROM table
 
 ⚠️ Сложный, редко нужен
 
-6. VersionedCollapsingMergeTree - то же самое, что предыдущий, но:
+	6. VersionedCollapsingMergeTree - то же самое, что предыдущий, но:
 	* с версией
 	* решает конфликты порядка
 
