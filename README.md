@@ -212,54 +212,52 @@ ENGINE = ReplacingMergeTree(version)
 
 	3. SummingMergeTree - Авто-агрегация
 
-При merge:
-	* строки с одинаковым ключом
+При merge:\
+	* строки с одинаковым ключом\
 	* числовые поля суммируются
 
-Когда
-	* pre-aggregated fact tables
-	* счетчики
+Когда\
+	* pre-aggregated fact tables\
+	* счетчики\
 	* метрики
 
-ENGINE = SummingMergeTree
+ENGINE = SummingMergeTree\
 ORDER BY (dt, product_id)
 
 ⚠️ Опасно для сложной логики — нет контроля над merge
 
 	4. AggregatingMergeTree - хардкор-агрегации
 
-Хранит состояния агрегатных функций, а не числа:
-	* sumState
-	* uniqState
+Хранит состояния агрегатных функций, а не числа:\
+	* sumState\
+	* uniqState\
 	* quantileState
 
-Когда
-	* OLAP-кубы
-	* rollup-витрины
+Когда\
+	* OLAP-кубы\
+	* rollup-витрины\
 	* near-real-time BI
 
-ENGINE = AggregatingMergeTree
+ENGINE = AggregatingMergeTree\
 ORDER BY (dt, key)
 
-Чтение:
-
-SELECT sumMerge(metric) FROM table
+Чтение: SELECT sumMerge(metric) FROM table
 
 
 	5. CollapsingMergeTree - строки-антистроки
 
-Есть поле sign:
-	* +1 — вставка
+Есть поле sign:\
+	* +1 — вставка\
 	* -1 — удаление
 
-Когда
-	* события изменений
+Когда\
+	* события изменений\
 	* CDC-подобные сценарии
 
 ⚠️ Сложный, редко нужен
 
-	6. VersionedCollapsingMergeTree - то же самое, что предыдущий, но:
-	* с версией
+	6. VersionedCollapsingMergeTree - то же самое, что предыдущий, но:\
+	* с версией\
 	* решает конфликты порядка
 
-Используется очень редко, но мощный.
+⚠️ Используется очень редко, но мощный.
