@@ -102,6 +102,15 @@ WHERE database='{database_name}' AND table='{local_table_name}' AND active
 GROUP BY table
 SETTINGS query_cache_system_table_handling = 'save';
 
+И где лежит
+SELECT
+    database,
+    table,
+    data_paths
+FROM system.tables
+WHERE database = '{database_name}'
+SETTINGS query_cache_system_table_handling = 'save';
+
 7.5. Посмотрим план запроса при фильтрации по году и периоду - должна хорошо работать с ORDER BY
 КТО: default
 ГДЕ: WEB UI на ОДНОЙ НОДЕ
