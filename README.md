@@ -494,7 +494,6 @@ Table\
 	* └── Part (physical, immutable)\
 		* └── Column files (.bin + .cmrk4)
 
-
 # Планы запросов
 
 ClickHouse не строит единый монолитный plan, как Spark или Postgres.
