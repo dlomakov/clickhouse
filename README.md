@@ -488,6 +488,13 @@ index_granularity обычно 8192 - т.е. 8192 строк на 1 гранул
 
 Column pruning работает полностью
 
+Итого, ментальная модель\
+Table
+ └── Partition (logical)
+      └── Part (physical, immutable)
+           └── Column files (.bin + .cmrk4)
+
+
 # Планы запросов
 
 ClickHouse не строит единый монолитный plan, как Spark или Postgres.
