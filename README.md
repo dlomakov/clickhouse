@@ -32,8 +32,6 @@ https://medium.com/%40suffyan.asad1/scaling-clickhouse-achieve-faster-queries-us
 
 6. ChatGPT
 
-
-
 # Роли и компоненты
 
 В ClickHouse важно сразу выкинуть «hadoop-мышление»: формальных master / worker ролей почти нет. Почти каждая нода — и сервер, и координатор.\
@@ -623,5 +621,3 @@ Spill'ы на диск есть, но:
 
 ClickHouse — это:
 **disk → memory → pipeline → network**
-
-# Узлы планов запросов
