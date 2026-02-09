@@ -498,7 +498,7 @@ Table
 # MergeTree
 На уровне файловой системы ClickHouse хранит данные ТОЛЬКО в parts.
 
-**Merge**
+**Merge**\
 Что делает MergeTree на уровне FS:
 1. INSERT
 	- создаёт новую директорию part
@@ -516,7 +516,7 @@ Table
 * SummingMergeTree → суммирует
 * AggregatingMergeTree → объединяет состояния
 
-**Tree**
+**Tree**\
 Tree — это иерархия частей данных (parts):
 
             part_100 (100M)
