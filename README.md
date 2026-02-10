@@ -26,11 +26,27 @@ https://gist.github.com/thanhthai3010/22f8d3d1f0d0897255b84f37571b683d
 Движки таблиц\
 https://clickhouse.com/docs/ru/engines/table-engines?ysclid=mldumst6yy94100096
 
-5. Medium.com\
+4. Habr\
+Дом, милый дом: нюансы работы с ClickHouse. Часть 1
+https://habr.com/ru/companies/nixys/articles/801029/?ysclid=mlfiutlx2h204133812
+
+5. BigDataSchool\
+Оптимизация запросов в ClickHouse: индексы, EXPLAIN и лучшие практики. Урок 6
+https://bigdataschool.ru/blog/news/clickhouse/free_course_06_clickhouse_indexes/
+
+6. Habr\
+Шардированный кластер ClickHouse\
+https://habr.com/ru/amp/publications/896060/
+
+8. Medium.com\
 Scaling ClickHouse: Achieve Faster Queries using Distributed Tables\
 https://medium.com/%40suffyan.asad1/scaling-clickhouse-achieve-faster-queries-using-distributed-tables-1c966d98953b
 
-6. ChatGPT
+9. Официальная документация\
+Простое руководство по оптимизации запросов\
+https://clickhouse.com/docs/ru/optimize/query-optimization
+
+10. ChatGPT
 
 # Роли и компоненты
 
