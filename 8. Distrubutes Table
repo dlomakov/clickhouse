@@ -1,0 +1,191 @@
+8. Работа с данными (распределенно)
+8.1. DDL: создаём локальную реплицируемую таблицу на всём кластере
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+CREATE DATABASE IF NOT EXISTS {database_name} ON CLUSTER {cluster_name};
+
+8.2. Создадим ЛОКАЛЬНЫЕ таблицы (физика) — ReplicatedMergeTree
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+CREATE TABLE IF NOT EXISTS {database_name}.{local_table_name} ON CLUSTER {cluster_name}
+(
+    price UInt32,
+    date Date,
+    postcode1 LowCardinality(String),
+    postcode2 LowCardinality(String),
+    type LowCardinality(String),
+    is_new UInt8,
+    duration LowCardinality(String),
+    addr1 String,
+    addr2 String,
+    street LowCardinality(String),
+    locality LowCardinality(String),
+    town LowCardinality(String),
+    district LowCardinality(String),
+    county LowCardinality(String)
+)
+ENGINE = ReplicatedMergeTree(
+    '/clickhouse/tables/{shard}/{database_name}/{local_table_name}',
+    '{replica}'
+)
+PARTITION BY toYYYYMM(date)
+ORDER BY (town, date, street)
+SETTINGS index_granularity = 8192;
+
+8.3. DDL: создаём Distributed (логическую) таблицу на всём кластере
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+CREATE TABLE IF NOT EXISTS {database_name}.{table_name} ON CLUSTER {cluster_name}
+AS {database_name}.{local_table_name}
+ENGINE = Distributed(
+    {cluster_name},
+    {database_name},
+    {local_table_name},
+    sipHash64(town)   -- шардирование (стабильно и наглядно)
+);
+
+8.4. Вставим данные в Distributed (зальём тот же датасет)
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+
+INSERT INTO {database_name}.{table_name}
+SELECT
+    toUInt32OrNull(price) AS price,
+    toDateOrNull(date) AS date,
+    postcode1,
+    postcode2,
+    type,
+    toUInt8OrNull(is_new) AS is_new,
+    duration,
+    addr1,
+    addr2,
+    street,
+    locality,
+    town,
+    district,
+    county
+FROM url(
+  'https://storage.googleapis.com/clickhouse-demo-public/uk_price_paid.csv',
+  'CSVWithNames',
+  '
+    price String,
+    date String,
+    postcode1 String,
+    postcode2 String,
+    type String,
+    is_new String,
+    duration String,
+    addr1 String,
+    addr2 String,
+    street String,
+    locality String,
+    town String,
+    district String,
+    county String,
+    category String
+  '
+)
+WHERE price IS NOT NULL AND date IS NOT NULL
+and date >= '2023-01-01'
+LIMIT 200000
+SETTINGS insert_distributed_sync = 1;
+
+	* insert_distributed_sync=1 — чтобы INSERT дождался доставки на шарды (удобно для лабы)
+
+Проверка:
+SELECT count() FROM {database_name}.{table_name};
+
+8.5. Смотрим system.parts и как данные разъехались по шардам/репликам
+Сколько строк на какой ноде (физика)
+
+SELECT
+    hostName() AS host,
+    sum(rows) AS rows,
+    formatReadableSize(sum(bytes_on_disk)) AS size
+FROM clusterAllReplicas({cluster_name}, system.parts)
+WHERE database='{database_name}'
+  AND table='{local_table_name}'
+  AND active
+GROUP BY host
+ORDER BY rows DESC
+SETTINGS query_cache_system_table_handling = 'save';
+
+
+8.6. Сколько строк на шард (агрегируем по shard'ам)
+SELECT
+    _shard_num as shard_num,
+    sum(rows) AS rows,
+    formatReadableSize(sum(bytes_on_disk)) AS size
+FROM clusterAllReplicas({cluster_name}, system.parts)
+WHERE database='{database_name}'
+  AND table='{local_table_name}'
+  AND active
+GROUP BY _shard_num
+ORDER BY _shard_num
+SETTINGS query_cache_system_table_handling = 'save';
+
+Ожидаемо: внутри каждого шарда обе реплики будут иметь одинаковые rows (после репликации).
+
+8.7. Физическое хранение: где лежат parts на диске каждой ноды
+Узнаём путь к данным таблицы (на каждой ноде свой)
+
+SELECT
+  hostName() AS host,
+  database,
+  table,
+  data_paths
+FROM clusterAllReplicas({cluster_name}, system.tables)
+WHERE database='{database_name}' AND table='{local_table_name}'
+SETTINGS query_cache_system_table_handling = 'save';
+
+Увидим пути вида:
+/var/lib/clickhouse/store/xxx/<uuid>/
+
+8.8. Сопоставляем part → путь
+SELECT
+  hostName() AS host,
+  name,
+  partition,
+  rows,
+  path
+FROM clusterAllReplicas({cluster_name}, system.parts)
+WHERE database = '{database_name}' 
+	AND table='{local_table_name}'
+ORDER BY host, partition, name
+LIMIT 50
+SETTINGS query_cache_system_table_handling = 'save';
+
+Дальше уже на конкретной ноде:
+cd /var/lib/clickhouse/store/...
+ls -la
+
+8.9. Распределённое выполнение запросов и “с какой ноды что едет”
+Явно покажем, что запрос исполняется на шардах
+
+SELECT
+  hostName() AS host,
+  count() AS rows
+FROM clusterAllReplicas({cluster_name}, {database_name}.{local_table_name})
+GROUP BY host
+ORDER BY rows DESC
+SETTINGS query_cache_system_table_handling = 'save';
+
+8.10. А теперь через Distributed (одним запросом)
+SELECT
+  town,
+  count() AS cnt,
+  avg(price) AS avg_price
+FROM {database_name}.{table_name}
+WHERE date >= '2023-01-01' AND date < '2024-01-01'
+GROUP BY town
+ORDER BY cnt DESC
+LIMIT 10;
+
+8.11. Посмотреть pipeline на Distributed (увидим RemoteSource)
+EXPLAIN PIPELINE
+SELECT
+  town,
+  count()
+FROM {database_name}.{table_name}
+WHERE date >= '2023-01-01' AND date < '2024-01-01'
+GROUP BY town;
