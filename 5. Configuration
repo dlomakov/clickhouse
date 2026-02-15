@@ -148,10 +148,14 @@ sudo vi /etc/clickhouse-server/config.d/remote_servers.xml
         <replica>
           <host>{clickhouse_master_1_host_fullname}</host>
           <port>9000</port>
+  		  <user>default</user>
+  		  <password>{STRONG_PASSWORD}</password>
         </replica>
         <replica>
           <host>{clickhouse_master_2_host_fullname}</host>
           <port>9000</port>
+  		  <user>default</user>
+  		  <password>{STRONG_PASSWORD}</password>
         </replica>
       </shard>
       <shard>
@@ -159,10 +163,14 @@ sudo vi /etc/clickhouse-server/config.d/remote_servers.xml
         <replica>
           <host>{clickhouse_master_3_host_fullname}</host>
           <port>9000</port>
+  		  <user>default</user>
+  		  <password>{STRONG_PASSWORD}</password>
         </replica>
         <replica>
           <host>{clickhouse_master_4_host_fullname}</host>
           <port>9000</port>
+  		  <user>default</user>
+  		  <password>{STRONG_PASSWORD}</password>
         </replica>
       </shard>
     </{cluster_name}>
