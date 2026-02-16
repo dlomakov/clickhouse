@@ -811,10 +811,10 @@ Total CPU parallelism = Σ (max_threads per node)
 * не удваивается вычисление
 
 Как выбирается реплика:
-	* round-robin
-	* или по latency
-	* или текущий leader
-	* или по load balancing
+* round-robin
+* или по latency
+* или текущий leader
+* или по load balancing
 
 На каждой выбранной реплике:
 1. Выполняется локальный запрос:
@@ -823,7 +823,7 @@ Total CPU parallelism = Σ (max_threads per node)
 	* локальная агрегация (partial)
 2. Результат стримится по сети координатору
 
-На координаторе:
+На координаторе:\
 3. Происходит:
 	* RemoteSource
 	* MergingAggregatedTransform
@@ -831,7 +831,7 @@ Total CPU parallelism = Σ (max_threads per node)
 	* сортировка
 	* LIMIT
 
-Память и CPU масштабируются с числом шардов
+Память и CPU масштабируются с числом шардов\
 Итого:
 	* max_threads — параллелизм на одну ноду
 	* В Distributed он применяется на каждой участвующей ноде
