@@ -839,9 +839,9 @@ Total CPU parallelism = Σ (max_threads per node)
 
 # SETTINGS
 Примечания:
-	* Почти все settings можно задавать на уровне запроса: ... SETTINGS a=b, c=d
-	* Или профилем пользователя (users.xml / RBAC profiles)
-	* По-умолчанию сильно зависит от версии/профиля
+* Почти все settings можно задавать на уровне запроса: ... SETTINGS a=b, c=d
+* Или профилем пользователя (users.xml / RBAC profiles)
+* По-умолчанию сильно зависит от версии/профиля
 
 Основные SETTINGS: таблица
 |Group				|Setting								| Что контролирует Когда трогать Риск/особенность																	|
