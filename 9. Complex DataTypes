@@ -1,0 +1,88 @@
+9. Работа со сложными типами данных
+9.1. Добавим колонку с массивом
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+ALTER TABLE {database_name}.{local_table_name}
+ON CLUSTER {cluster_name}
+ADD COLUMN IF NOT EXISTS tags Array(LowCardinality(String));
+
+9.2. Заполним детерминированно из строк (чтобы было что агрегировать)
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+ALTER TABLE {database_name}.{local_table_name}
+ON CLUSTER {cluster_name}
+UPDATE tags =
+    [
+      lower(type),
+      lower(county),
+      if(is_new=1,'new','old'),
+      concat('p_', toString(intDiv(price, 50000)))
+    ]
+WHERE 1
+SETTINGS mutations_sync = 1;
+
+9.3. Добавим Map и заполним:
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+
+ALTER TABLE {database_name}.{local_table_name}
+ON CLUSTER {cluster_name}
+ADD COLUMN IF NOT EXISTS attrs Map(LowCardinality(String), String);
+
+ALTER TABLE {database_name}.{local_table_name}
+ON CLUSTER {cluster_name}
+UPDATE attrs =
+    map(
+      'town', town,
+      'district', district,
+      'duration', duration,
+      'postcode', concat(postcode1, ' ', postcode2)
+    )
+WHERE 1
+SETTINGS mutations_sync = 1;
+
+9.4. Пересоздадим DISTRIBUTED таблицу - она берет структуру на момент создания
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+drop table {database_name}.{table_name} on cluster {cluster_name} SYNC;
+
+CREATE TABLE IF NOT EXISTS {database_name}.{table_name} ON CLUSTER {cluster_name}
+AS {database_name}.{local_table_name}
+ENGINE = Distributed(
+    {cluster_name},
+    {database_name},
+    {local_table_name},
+    sipHash64(town)   -- шардирование (стабильно и наглядно)
+);
+
+9.5. “explode” (как Spark explode)
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+
+SELECT tag, count()
+FROM {database_name}.{table_name}
+ARRAY JOIN tags AS tag
+GROUP BY tag
+ORDER BY count() DESC
+LIMIT 20;
+
+9.6. Доступ к Map:
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+SELECT
+  attrs['town']     AS town,
+  attrs['duration'] AS duration,
+  count()
+FROM {database_name}.{table_name}
+GROUP BY town, duration
+ORDER BY count() DESC
+LIMIT 20;
+
+9.7. Фильтр Map по ключу
+КТО: default
+ГДЕ: WEB UI на ОДНОЙ НОДЕ
+
+SELECT count()
+FROM {database_name}.{table_name}
+WHERE mapContains(attrs, 'district')
+  AND attrs['district'] = 'PENDLE';
