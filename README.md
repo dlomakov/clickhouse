@@ -46,7 +46,10 @@ https://medium.com/%40suffyan.asad1/scaling-clickhouse-achieve-faster-queries-us
 Простое руководство по оптимизации запросов\
 https://clickhouse.com/docs/ru/optimize/query-optimization
 
-10. ChatGPT
+10. Типы Join в ClickHouse. Обзор алгоритмов и оптимизация запросов sql\
+https://ivan-shamaev.ru/join-types-in-clickhouse-algorithms-and-optimization-of-sql-queries/?ysclid=mlpjy2xalr803577679
+
+12. ChatGPT
 
 # Роли и компоненты
 
@@ -1002,7 +1005,7 @@ SETTINGS join_algorithm = 'hash' | 'grace_hash' | ...
 |---------------|-------------------------------------------|
 |hash			| Классический in-memory hash join			|
 |grace_hash		| Делит на части (более устойчив к памяти)	|
-|partial_merge	| Потоковый вариант							|
+|partial_merge	| Частичное слияние, потоковый вариант		|
 |direct			| Для словарей								|
 
 По-умолчанию — hash.
